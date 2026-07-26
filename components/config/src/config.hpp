@@ -96,7 +96,7 @@ enum class ConfigIdent {
   static const double  defaultBatteryTrim     = 4.086 / 4.26;
   static const int8_t  defaultLineHeight      =  1; // 0 = TIGHT, 1 = MEDIUM, 2 = LARGE
   static const int8_t  defaultColumnCount     =  1; // 1 to 4
-  static const int8_t  defaultBtKeypadType  =  0; // 0 = NONE, 1 = Beauty_R1, 2 = J06_PRO
+  static const int8_t  defaultBtKeypadType  =  0; // 0 = NONE, 1 = Beauty_R1, 2 = J06_PRO, 3 = MUZHTEN
 
   template <>
   Config::CfgType Config::cfg = { {

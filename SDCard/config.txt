@@ -38,6 +38,10 @@
 #      column_count
 #      bt_keypad_mac
 #      bt_keypad_type
+#
+# The bt_keypad_type values are: 0 = none, 1 = Beauty-R1, 2 = J06 Pro, 3 = MUZHTEN.
+# Both bt_keypad values are set automatically when a supported keypad is
+# discovered. Set them by hand only if automatic discovery fails.
 # ---
 
 version = 1

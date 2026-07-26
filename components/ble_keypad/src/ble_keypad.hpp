@@ -16,6 +16,7 @@
   #include "services/gap/ble_svc_gap.h"
 
   #include <functional>
+  #include <string>
 
   #define TRACING_BLE_KEYPAD 0
 
@@ -31,7 +32,7 @@
     private:
       static constexpr const char *TAG = "BLEKeypad";
 
-      enum class KeypadType : int8_t {  NONE = 0, BEAUTY_R1 = 1, J06_PRO = 2 };
+      enum class KeypadType : int8_t {  NONE = 0, BEAUTY_R1 = 1, J06_PRO = 2, MUZHTEN = 3 };
 
       // Singleton pointer used by static C callbacks to route back into C++ object context
       static BLEKeypad *instance;
@@ -49,6 +50,10 @@
       bool isConnecting{ false };
       bool paired{ false };
 
+      // Guards used to keep the two discovery attempts from overlapping
+      bool hidFound{ false };
+      bool discoveryActive{ false };
+
       // Standard SIG BLE UUID Definitions for HID Devices
       static constexpr uint16_t HID_REPORT_CHAR_UUID = 0x2A4D;
       static constexpr uint16_t BLE_CCCD_UUID        = 0x2902;
@@ -63,8 +68,10 @@
 
       auto processJ06ProPacket(const uint8_t *data, size_t length) -> void;
       auto processBeautyR1Packet(uint8_t *data, size_t length) -> void;
+      auto processMuzhtenPacket(const uint8_t *data, size_t length) -> void;
 
       // --- C++ NimBLE Class Instance Handlers ---
+      auto discoverHidChars() -> int;
       auto handleGapEvent(struct ble_gap_event *event) -> int;
       auto handleDiscovery(const struct ble_gatt_chr *chr) -> void;
       auto handleSubscription(int status, uint16_t attrHandle) -> void;
@@ -82,6 +89,7 @@
 
         // 1. Check if the discovery procedure completed or encountered an error
         if (error->status != 0) {
+          if (instance) { instance->discoveryActive = false; }
           if (error->status == BLE_HS_EDONE) {
             ESP_LOGI("BLEKeypad", "Characteristic discovery process completed successfully.");
           } else {
@@ -114,12 +122,25 @@
             uint8_t *data = (uint8_t *)malloc(len);
             if (data) {
               os_mbuf_copydata(om, 0, len, data);
+
+              #if TRACING_BLE_KEYPAD
+                // Each handle is a distinct HID report, tagged here to tell the streams apart
+                std::string hex;
+                for (uint16_t i = 0; i < len; i++) {
+                  hex += std::format("{:02x} ", data[i]);
+                }
+                LOG_I("RX handle={} len={}: {}", attrHandle, len, hex.c_str());
+              #endif
+
               switch (instance->getKeypadType()) {
               case KeypadType::BEAUTY_R1:
                 instance->processBeautyR1Packet(data, len);
                 break;
               case KeypadType::J06_PRO:
                 instance->processJ06ProPacket(data, len);
+                break;
+              case KeypadType::MUZHTEN:
+                instance->processMuzhtenPacket(data, len);
                 break;
               default:
                 LOG_W("Unknown BLE Keypad Type!");

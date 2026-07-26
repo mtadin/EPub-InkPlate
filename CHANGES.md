@@ -27,6 +27,8 @@ Update to version 3.0.0
 - Bug fix: bad field highlighting when the keypad is shown over its location on screen.
 - Hyphenator for 16 languages. They are Albanian, Croatian, Czech, Danish, Dutch, English, French, German, Icelandic, Italian, Polish, Portuguese, Slovak, Slovenian, Spanish, and Turkish
 - Bluetooth support for mini keypads in use with the following Inkplate devices: 5V2, 6V2, and 10V2.
+- BLE keypads that only expose their HID service to a bonded peer are now paired properly: security is requested on connection and the HID characteristics are searched again once the link is encrypted.
+- Support for the mini keypads advertising themselves as `MUZHTEN`. They are sold as a Beauty-R1 but send a different set of HID reports. The `bt_keypad_type` config value for them is 3.
 
 **Page locations (PageLocs) architecture**
 
